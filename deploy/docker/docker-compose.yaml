@@ -157,10 +157,16 @@ services:
     environment:
       - OTEL_RESOURCE_ATTRIBUTES=host.name=signoz-host,os.type=linux
       - LOW_CARDINAL_EXCEPTION_GROUPING=false
-    ports:
-      # - "1777:1777"     # pprof extension
-      - "4317:4317" # OTLP gRPC receiver
-      - "4318:4318" # OTLP HTTP receiver
+    # we add this service to the same network as vms (django and celery)
+    # ports:
+    #   # - "1777:1777"     # pprof extension
+      # - "4317:4317" # OTLP gRPC receiver
+    #   - "4318:4318" # OTLP HTTP receiver
+    expose:
+      - 24224 # fluentforward receiver
+    networks:
+      - vms_otel_network
+      - signoz-net
     depends_on:
       signoz:
         condition: service_healthy
@@ -188,6 +194,8 @@ services:
 networks:
   signoz-net:
     name: signoz-net
+  vms_otel_network:
+    external: true
 volumes:
   clickhouse:
     name: signoz-clickhouse
