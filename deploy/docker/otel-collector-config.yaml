@@ -5,6 +5,8 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
+  fluentforward:
+    endpoint: 0.0.0.0:24224
   prometheus:
     config:
       global:
@@ -50,6 +52,32 @@ processors:
       - name: host.name
       - name: host.type
       - name: container.name
+  logstransform/jsonparser:
+    operators:
+      - type: json_parser
+        parse_from: body
+        parse_to: attributes
+  logstransform/severityparser:
+    operators:
+      - type: severity_parser
+        parse_from: attributes.levelname
+        mapping:
+          CRITICAL: ERROR
+          ERROR: ERROR
+          WARNING: WARN
+          INFO: INFO
+          DEBUG: DEBUG
+  logstransform/traceparser:
+    operators:
+      - type: trace_parser
+        trace_id:
+          parse_from: attributes.otelTraceID
+        span_id:
+          parse_from: attributes.otelSpanID
+      - type: remove
+        field: attributes.otelTraceID
+      - type: remove
+        field: attributes.otelSpanID
 extensions:
   health_check:
     endpoint: 0.0.0.0:13133
@@ -87,6 +115,6 @@ service:
       processors: [batch]
       exporters: [signozclickhousemetrics]
     logs:
-      receivers: [otlp]
-      processors: [batch]
+      receivers: [otlp,fluentforward]
+      processors: [batch,logstransform/jsonparser,logstransform/severityparser,logstransform/traceparser]
       exporters: [clickhouselogsexporter]
