@@ -1,4 +1,9 @@
 receivers:
+  docker_stats:
+    endpoint: unix:///var/run/docker.sock
+    collection_interval: 15s
+    excluded_images:
+      - '!*vms*'   # exclude all images that do NOT match *vms*
   otlp:
     protocols:
       grpc:
@@ -107,7 +112,7 @@ service:
       processors: [signozspanmetrics/delta, batch]
       exporters: [clickhousetraces]
     metrics:
-      receivers: [otlp]
+      receivers: [otlp,docker_stats]
       processors: [batch]
       exporters: [signozclickhousemetrics]
     metrics/prometheus:
