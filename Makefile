@@ -209,3 +209,7 @@ py-lint: ## Run lint for integration tests
 .PHONY: py-test
 py-test: ## Runs integration tests
 	@cd tests/integration && poetry run pytest --basetemp=./tmp/ -vv --capture=no src/
+
+.PHONY: bundle
+bundle: # bundels the project for deployment
+	./deploy/bundle.sh

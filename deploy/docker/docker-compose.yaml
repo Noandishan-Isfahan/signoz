@@ -156,7 +156,7 @@ services:
       - ../common/signoz/otel-collector-opamp-config.yaml:/etc/manager-config.yaml
       - /var/run/docker.sock:/var/run/docker.sock:ro
     group_add:
-      - "986"
+      - "${HOST_DOCKER_GROUP_ID}"
     environment:
       - OTEL_RESOURCE_ATTRIBUTES=host.name=signoz-host,os.type=linux
       - LOW_CARDINAL_EXCEPTION_GROUPING=false
@@ -168,7 +168,7 @@ services:
     expose:
       - 24224 # fluentforward receiver
     networks:
-      - vms_otel_network
+      - ${VMS_OTEL_NETWORK_NAME:-vms_otel_network}
       - signoz-net
     depends_on:
       signoz:
@@ -198,6 +198,7 @@ networks:
   signoz-net:
     name: signoz-net
   vms_otel_network:
+    name: ${VMS_OTEL_NETWORK_NAME:-vms_otel_network}
     external: true
 volumes:
   clickhouse:
